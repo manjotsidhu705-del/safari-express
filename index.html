@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Safari Express</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+    }
+
+    button {
+      background: black;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .log {
+      border-top: 1px solid #ddd;
+      padding: 10px 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>Safari Express</h1>
+
+  <input id="driver" placeholder="Driver Name" />
+  <input id="vehicle" placeholder="Vehicle ID" />
+
+  <select id="status">
+    <option>On Duty</option>
+    <option>Driving</option>
+    <option>Off Duty</option>
+    <option>Sleeper Berth</option>
+  </select>
+
+  <button onclick="addLog()">Add Log</button>
+
+  <div id="logs"></div>
+</div>
+
+<script>
+  const logs = [];
+
+  function addLog() {
+    const driver = document.getElementById("driver").value;
+    const vehicle = document.getElementById("vehicle").value;
+    const status = document.getElementById("status").value;
+
+    if (!driver || !vehicle) return;
+
+    const log = {
+      driver,
+      vehicle,
+      status,
+      time: new Date().toLocaleString()
+    };
+
+    logs.unshift(log);
+    render();
+
+    document.getElementById("driver").value = "";
+    document.getElementById("vehicle").value = "";
+  }
+
+  function render() {
+    const container = document.getElementById("logs");
+    container.innerHTML = "";
+
+    logs.forEach(l => {
+      container.innerHTML += `
+        <div class="log">
+          <b>${l.driver}</b> - ${l.vehicle}<br/>
+          Status: ${l.status}<br/>
+          <small>${l.time}</small>
+        </div>
+      `;
+    });
+  }
+</script>
+
+</body>
+</html>
