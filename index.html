@@ -4,7 +4,6 @@
 <meta charset="UTF-8" />
 <title>Safari ELD</title>
 
-<!-- Leaflet Map Library -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -51,9 +50,7 @@ button {
   top: 0;
 }
 
-h2 {
-  color: #1e66ff;
-}
+h2 { color: #1e66ff; }
 
 .main {
   margin-left: 240px;
@@ -75,12 +72,11 @@ h2 {
   width: 100%;
 }
 
-/* MAP STYLE */
 #map {
   height: 420px;
   width: 100%;
-  border-radius: 10px;
   margin-top: 10px;
+  border-radius: 10px;
 }
 </style>
 </head>
@@ -96,10 +92,9 @@ let logs = JSON.parse(localStorage.getItem("safari_logs") || "[]");
 let dispatches = JSON.parse(localStorage.getItem("safari_dispatch") || "[]");
 
 let page = "dashboard";
-
 let gps = { lat: 34.05, lng: -117.75 };
 
-// MAP VARIABLES
+// MAP
 let map = null;
 let marker = null;
 
@@ -146,23 +141,22 @@ function addDispatch() {
   render();
 }
 
-// ---------- GPS UPDATE ----------
+// ---------- GPS SIM ----------
 setInterval(() => {
   gps.lat += (Math.random() - 0.5) * 0.01;
   gps.lng += (Math.random() - 0.5) * 0.01;
 
-  updateMap(); // update marker
-  render();
+  updateMap();
 }, 3000);
 
-// ---------- MAP INIT ----------
+// ---------- MAP ----------
 function initMap() {
   if (map) return;
 
   map = L.map("map").setView([gps.lat, gps.lng], 13);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "© OpenStreetMap contributors",
+    attribution: "© OpenStreetMap",
   }).addTo(map);
 
   marker = L.marker([gps.lat, gps.lng]).addTo(map);
@@ -179,12 +173,10 @@ function updateMap() {
 function render() {
   const app = document.getElementById("app");
 
-  // LOGIN SCREEN
   if (!user) {
     app.innerHTML = `
       <div class="loginBox">
         <h2>Safari ELD</h2>
-
         <input id="username" placeholder="Username" />
 
         <select id="role">
@@ -199,7 +191,6 @@ function render() {
     return;
   }
 
-  // MAIN APP
   app.innerHTML = `
     <div class="sidebar">
       <h2>Safari ELD</h2>
@@ -215,65 +206,46 @@ function render() {
 
     <div class="main">
 
-      ${
-        page === "dashboard"
-          ? `
-          <h2>Dashboard</h2>
-          <div class="card">Logs: ${logs.length}</div>
-          <div class="card">Dispatches: ${dispatches.length}</div>
-        `
-          : ""
-      }
+      ${page === "dashboard" ? `
+        <h2>Dashboard</h2>
+        <div class="card">Logs: ${logs.length}</div>
+        <div class="card">Dispatches: ${dispatches.length}</div>
+      ` : ""}
 
-      ${
-        page === "dispatch"
-          ? `
-          <h2>Dispatch</h2>
-          <button onclick="addDispatch()">+ Add Dispatch</button>
-          ${dispatches.map(d => `
-            <div class="card">${d.load} - ${d.status}</div>
-          `).join("")}
-        `
-          : ""
-      }
+      ${page === "dispatch" ? `
+        <h2>Dispatch</h2>
+        <button onclick="addDispatch()">+ Add Dispatch</button>
+        ${dispatches.map(d => `
+          <div class="card">${d.load} - ${d.status}</div>
+        `).join("")}
+      ` : ""}
 
-      ${
-        page === "logs"
-          ? `
-          <h2>Truck Logs</h2>
-          <button onclick="addLog()">+ Add Log</button>
-          ${logs.map(l => `
-            <div class="card">
-              ${l.truck} — ${l.miles} miles — ${l.hours} hrs
-            </div>
-          `).join("")}
-        `
-          : ""
-      }
+      ${page === "logs" ? `
+        <h2>Logs</h2>
+        <button onclick="addLog()">+ Add Log</button>
+        ${logs.map(l => `
+          <div class="card">${l.truck} — ${l.miles} miles — ${l.hours} hrs</div>
+        `).join("")}
+      ` : ""}
 
-      ${
-        page === "gps"
-          ? `
-          <h2>GPS Tracking</h2>
+      ${page === "gps" ? `
+        <h2>GPS Tracking</h2>
 
-          <div class="card">
-            Latitude: ${gps.lat.toFixed(5)}<br>
-            Longitude: ${gps.lng.toFixed(5)}
-          </div>
+        <div class="card">
+          Lat: ${gps.lat.toFixed(5)}<br>
+          Lng: ${gps.lng.toFixed(5)}
+        </div>
 
-          <div id="map"></div>
-
-          <script>
-            setTimeout(() => {
-              initMap();
-            }, 100);
-          </script>
-        `
-          : ""
-      }
+        <div id="map"></div>
+      ` : ""}
 
     </div>
   `;
+
+  // INIT MAP ONLY WHEN GPS PAGE OPENS
+  if (page === "gps") {
+    setTimeout(initMap, 100);
+  }
 }
 
 render();
