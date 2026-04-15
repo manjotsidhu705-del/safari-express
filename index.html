@@ -4,15 +4,18 @@
 <meta charset="UTF-8" />
 <title>Safari ELD</title>
 
+<!-- Leaflet Map Library -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <style>
 body {
   margin: 0;
   font-family: Arial;
-  background: white; /* removed blue/black background */
+  background: white;
   color: black;
 }
 
-/* CENTER LOGIN */
 .loginBox {
   position: absolute;
   top: 50%;
@@ -22,25 +25,22 @@ body {
   text-align: center;
 }
 
-/* INPUTS */
 input, select {
   width: 100%;
   margin: 6px 0;
   padding: 10px;
 }
 
-/* BUTTON */
 button {
   width: 100%;
   margin-top: 10px;
   padding: 10px;
-  background: #1e66ff; /* keep blue accent */
+  background: #1e66ff;
   border: none;
   color: white;
   cursor: pointer;
 }
 
-/* SIDEBAR */
 .sidebar {
   width: 220px;
   background: #f4f4f4;
@@ -52,10 +52,9 @@ button {
 }
 
 h2 {
-  color: #1e66ff; /* title stays blue */
+  color: #1e66ff;
 }
 
-/* MAIN */
 .main {
   margin-left: 240px;
   padding: 20px;
@@ -68,13 +67,20 @@ h2 {
   border-radius: 8px;
 }
 
-/* LOGOUT */
 .logout {
   background: red;
   border: none;
   margin-top: 20px;
   color: white;
   width: 100%;
+}
+
+/* MAP STYLE */
+#map {
+  height: 420px;
+  width: 100%;
+  border-radius: 10px;
+  margin-top: 10px;
 }
 </style>
 </head>
@@ -92,6 +98,10 @@ let dispatches = JSON.parse(localStorage.getItem("safari_dispatch") || "[]");
 let page = "dashboard";
 
 let gps = { lat: 34.05, lng: -117.75 };
+
+// MAP VARIABLES
+let map = null;
+let marker = null;
 
 // ---------- SAVE ----------
 function save() {
@@ -136,18 +146,40 @@ function addDispatch() {
   render();
 }
 
-// ---------- GPS ----------
+// ---------- GPS UPDATE ----------
 setInterval(() => {
   gps.lat += (Math.random() - 0.5) * 0.01;
   gps.lng += (Math.random() - 0.5) * 0.01;
+
+  updateMap(); // update marker
   render();
 }, 3000);
+
+// ---------- MAP INIT ----------
+function initMap() {
+  if (map) return;
+
+  map = L.map("map").setView([gps.lat, gps.lng], 13);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap contributors",
+  }).addTo(map);
+
+  marker = L.marker([gps.lat, gps.lng]).addTo(map);
+}
+
+function updateMap() {
+  if (!map || !marker) return;
+
+  marker.setLatLng([gps.lat, gps.lng]);
+  map.setView([gps.lat, gps.lng]);
+}
 
 // ---------- RENDER ----------
 function render() {
   const app = document.getElementById("app");
 
-  // LOGIN SCREEN (CENTER FIXED)
+  // LOGIN SCREEN
   if (!user) {
     app.innerHTML = `
       <div class="loginBox">
@@ -223,10 +255,19 @@ function render() {
         page === "gps"
           ? `
           <h2>GPS Tracking</h2>
+
           <div class="card">
             Latitude: ${gps.lat.toFixed(5)}<br>
             Longitude: ${gps.lng.toFixed(5)}
           </div>
+
+          <div id="map"></div>
+
+          <script>
+            setTimeout(() => {
+              initMap();
+            }, 100);
+          </script>
         `
           : ""
       }
