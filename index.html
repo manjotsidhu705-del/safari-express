@@ -1,108 +1,243 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Safari Express</title>
+<meta charset="UTF-8" />
+<title>Safari ELD</title>
 
-  <style>
-    body {
-      font-family: Arial;
-      background: #f4f4f4;
-      margin: 0;
-      padding: 0;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #0b0f1a;
+  color: white;
+  display: flex;
+}
 
-    .container {
-      max-width: 600px;
-      margin: 40px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-    }
+/* SIDEBAR */
+.sidebar {
+  width: 220px;
+  background: #070a12;
+  padding: 15px;
+  height: 100vh;
+}
 
-    h1 {
-      text-align: center;
-    }
+h2 {
+  color: #1e66ff;
+}
 
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-    }
+button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid #1e66ff;
+  color: white;
+  cursor: pointer;
+}
 
-    button {
-      background: black;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
+button:hover {
+  background: #1e66ff;
+}
 
-    .log {
-      border-top: 1px solid #ddd;
-      padding: 10px 0;
-    }
-  </style>
+.logout {
+  background: red;
+  border: none;
+  margin-top: 20px;
+}
+
+/* MAIN */
+.main {
+  flex: 1;
+  padding: 20px;
+}
+
+.card {
+  background: #111a2e;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 8px;
+}
+
+input, select {
+  width: 100%;
+  margin: 5px 0;
+  padding: 8px;
+}
+
+.loginBox {
+  margin: auto;
+  margin-top: 100px;
+  width: 300px;
+}
+</style>
 </head>
 
 <body>
 
-<div class="container">
-  <h1>Safari Express</h1>
-
-  <input id="driver" placeholder="Driver Name" />
-  <input id="vehicle" placeholder="Vehicle ID" />
-
-  <select id="status">
-    <option>On Duty</option>
-    <option>Driving</option>
-    <option>Off Duty</option>
-    <option>Sleeper Berth</option>
-  </select>
-
-  <button onclick="addLog()">Add Log</button>
-
-  <div id="logs"></div>
-</div>
+<div id="app"></div>
 
 <script>
-  const logs = [];
+// ---------- STATE ----------
+let user = JSON.parse(localStorage.getItem("safari_user"));
+let logs = JSON.parse(localStorage.getItem("safari_logs") || "[]");
+let dispatches = JSON.parse(localStorage.getItem("safari_dispatch") || "[]");
 
-  function addLog() {
-    const driver = document.getElementById("driver").value;
-    const vehicle = document.getElementById("vehicle").value;
-    const status = document.getElementById("status").value;
+let page = "dashboard";
 
-    if (!driver || !vehicle) return;
+let gps = { lat: 34.05, lng: -117.75 };
 
-    const log = {
-      driver,
-      vehicle,
-      status,
-      time: new Date().toLocaleString()
-    };
+// ---------- SAVE ----------
+function save() {
+  localStorage.setItem("safari_user", JSON.stringify(user));
+  localStorage.setItem("safari_logs", JSON.stringify(logs));
+  localStorage.setItem("safari_dispatch", JSON.stringify(dispatches));
+}
 
-    logs.unshift(log);
-    render();
+// ---------- LOGIN ----------
+function login() {
+  const username = document.getElementById("username").value;
+  const role = document.getElementById("role").value;
 
-    document.getElementById("driver").value = "";
-    document.getElementById("vehicle").value = "";
+  user = { username, role };
+  save();
+  render();
+}
+
+function logout() {
+  localStorage.removeItem("safari_user");
+  user = null;
+  render();
+}
+
+// ---------- ACTIONS ----------
+function addLog() {
+  logs.push({
+    truck: "TRK-" + Math.floor(Math.random() * 100),
+    miles: Math.floor(Math.random() * 600),
+    hours: Math.floor(Math.random() * 10),
+  });
+  save();
+  render();
+}
+
+function addDispatch() {
+  dispatches.push({
+    load: "LOAD-" + Math.floor(Math.random() * 9999),
+    status: "pending",
+  });
+  save();
+  render();
+}
+
+// ---------- GPS ----------
+setInterval(() => {
+  gps.lat += (Math.random() - 0.5) * 0.01;
+  gps.lng += (Math.random() - 0.5) * 0.01;
+  render();
+}, 3000);
+
+// ---------- RENDER ----------
+function render() {
+  const app = document.getElementById("app");
+
+  // LOGIN SCREEN
+  if (!user) {
+    app.innerHTML = `
+      <div class="loginBox">
+        <h2>Safari ELD Login</h2>
+
+        <input id="username" placeholder="Username" />
+        
+        <select id="role">
+          <option value="admin">Admin</option>
+          <option value="dispatcher">Dispatcher</option>
+          <option value="driver">Driver</option>
+        </select>
+
+        <button onclick="login()">Login</button>
+      </div>
+    `;
+    return;
   }
 
-  function render() {
-    const container = document.getElementById("logs");
-    container.innerHTML = "";
+  // MAIN APP
+  app.innerHTML = `
+    <div class="sidebar">
+      <h2>Safari ELD</h2>
+      <p>Role: ${user.role}</p>
 
-    logs.forEach(l => {
-      container.innerHTML += `
-        <div class="log">
-          <b>${l.driver}</b> - ${l.vehicle}<br/>
-          Status: ${l.status}<br/>
-          <small>${l.time}</small>
-        </div>
-      `;
-    });
-  }
+      <button onclick="page='dashboard';render()">Dashboard</button>
+      <button onclick="page='dispatch';render()">Dispatch</button>
+      <button onclick="page='logs';render()">Logs</button>
+      <button onclick="page='gps';render()">GPS</button>
+
+      <button class="logout" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="main">
+
+      ${
+        page === "dashboard"
+          ? `
+          <h2>Dashboard</h2>
+          <div class="card">Logs: ${logs.length}</div>
+          <div class="card">Dispatches: ${dispatches.length}</div>
+        `
+          : ""
+      }
+
+      ${
+        page === "dispatch"
+          ? `
+          <h2>Dispatch</h2>
+          <button onclick="addDispatch()">+ Add Dispatch</button>
+          ${dispatches
+            .map(
+              (d) => `
+            <div class="card">${d.load} - ${d.status}</div>
+          `
+            )
+            .join("")}
+        `
+          : ""
+      }
+
+      ${
+        page === "logs"
+          ? `
+          <h2>Truck Logs</h2>
+          <button onclick="addLog()">+ Add Log</button>
+          ${logs
+            .map(
+              (l) => `
+            <div class="card">
+              ${l.truck} — ${l.miles} miles — ${l.hours} hrs
+            </div>
+          `
+            )
+            .join("")}
+        `
+          : ""
+      }
+
+      ${
+        page === "gps"
+          ? `
+          <h2>GPS Tracking</h2>
+          <div class="card">
+            Latitude: ${gps.lat.toFixed(5)}<br>
+            Longitude: ${gps.lng.toFixed(5)}
+          </div>
+        `
+          : ""
+      }
+
+    </div>
+  `;
+}
+
+// start
+render();
 </script>
 
 </body>
