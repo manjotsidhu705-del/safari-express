@@ -8,66 +8,73 @@
 body {
   margin: 0;
   font-family: Arial;
-  background: #0b0f1a;
+  background: white; /* removed blue/black background */
+  color: black;
+}
+
+/* CENTER LOGIN */
+.loginBox {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 320px;
+  text-align: center;
+}
+
+/* INPUTS */
+input, select {
+  width: 100%;
+  margin: 6px 0;
+  padding: 10px;
+}
+
+/* BUTTON */
+button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  background: #1e66ff; /* keep blue accent */
+  border: none;
   color: white;
-  display: flex;
+  cursor: pointer;
 }
 
 /* SIDEBAR */
 .sidebar {
   width: 220px;
-  background: #070a12;
+  background: #f4f4f4;
   padding: 15px;
   height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
 }
 
 h2 {
-  color: #1e66ff;
-}
-
-button {
-  width: 100%;
-  margin-top: 10px;
-  padding: 10px;
-  background: transparent;
-  border: 1px solid #1e66ff;
-  color: white;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #1e66ff;
-}
-
-.logout {
-  background: red;
-  border: none;
-  margin-top: 20px;
+  color: #1e66ff; /* title stays blue */
 }
 
 /* MAIN */
 .main {
-  flex: 1;
+  margin-left: 240px;
   padding: 20px;
 }
 
 .card {
-  background: #111a2e;
+  background: #f1f1f1;
   padding: 12px;
   margin-top: 10px;
   border-radius: 8px;
 }
 
-input, select {
+/* LOGOUT */
+.logout {
+  background: red;
+  border: none;
+  margin-top: 20px;
+  color: white;
   width: 100%;
-  margin: 5px 0;
-  padding: 8px;
-}
-
-.loginBox {
-  margin: auto;
-  margin-top: 100px;
-  width: 300px;
 }
 </style>
 </head>
@@ -140,14 +147,14 @@ setInterval(() => {
 function render() {
   const app = document.getElementById("app");
 
-  // LOGIN SCREEN
+  // LOGIN SCREEN (CENTER FIXED)
   if (!user) {
     app.innerHTML = `
       <div class="loginBox">
-        <h2>Safari ELD Login</h2>
+        <h2>Safari ELD</h2>
 
         <input id="username" placeholder="Username" />
-        
+
         <select id="role">
           <option value="admin">Admin</option>
           <option value="dispatcher">Dispatcher</option>
@@ -191,13 +198,9 @@ function render() {
           ? `
           <h2>Dispatch</h2>
           <button onclick="addDispatch()">+ Add Dispatch</button>
-          ${dispatches
-            .map(
-              (d) => `
+          ${dispatches.map(d => `
             <div class="card">${d.load} - ${d.status}</div>
-          `
-            )
-            .join("")}
+          `).join("")}
         `
           : ""
       }
@@ -207,15 +210,11 @@ function render() {
           ? `
           <h2>Truck Logs</h2>
           <button onclick="addLog()">+ Add Log</button>
-          ${logs
-            .map(
-              (l) => `
+          ${logs.map(l => `
             <div class="card">
               ${l.truck} — ${l.miles} miles — ${l.hours} hrs
             </div>
-          `
-            )
-            .join("")}
+          `).join("")}
         `
           : ""
       }
@@ -236,7 +235,6 @@ function render() {
   `;
 }
 
-// start
 render();
 </script>
 
